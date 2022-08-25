@@ -29,10 +29,6 @@ int libnetd_updatable_init(const char* cg2_path) {
 
     android::net::gNetdUpdatable = android::net::NetdUpdatable::getInstance();
     android::netdutils::Status ret = android::net::gNetdUpdatable->mBpfHandler.init(cg2_path);
-    if (!android::netdutils::isOk(ret)) {
-        LOG(ERROR) << __func__ << ": BPF handler init failed";
-        return -ret.code();
-    }
     return 0;
 }
 
