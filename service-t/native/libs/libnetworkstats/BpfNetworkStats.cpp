@@ -40,10 +40,6 @@ namespace bpf {
 
 using base::Result;
 
-// The target map for stats reading should be the inactive map, which is opposite
-// from the config value.
-static constexpr char const* STATS_MAP_PATH[] = {STATS_MAP_B_PATH, STATS_MAP_A_PATH};
-
 int bpfGetUidStatsInternal(uid_t uid, Stats* stats,
                            const BpfMap<uint32_t, StatsValue>& appUidStatsMap) {
     auto statsEntry = appUidStatsMap.readValue(uid);
@@ -174,49 +170,7 @@ int parseBpfNetworkStatsDetailInternal(std::vector<stats_line>* lines,
 int parseBpfNetworkStatsDetail(std::vector<stats_line>* lines,
                                const std::vector<std::string>& limitIfaces, int limitTag,
                                int limitUid) {
-    BpfMapRO<uint32_t, IfaceValue> ifaceIndexNameMap(IFACE_INDEX_NAME_MAP_PATH);
-    if (!ifaceIndexNameMap.isValid()) {
-        int ret = -errno;
-        ALOGE("get ifaceIndexName map fd failed: %s", strerror(errno));
-        return ret;
-    }
-
-    BpfMapRO<uint32_t, uint32_t> configurationMap(CONFIGURATION_MAP_PATH);
-    if (!configurationMap.isValid()) {
-        int ret = -errno;
-        ALOGE("get configuration map fd failed: %s", strerror(errno));
-        return ret;
-    }
-    auto configuration = configurationMap.readValue(CURRENT_STATS_MAP_CONFIGURATION_KEY);
-    if (!configuration.ok()) {
-        ALOGE("Cannot read the old configuration from map: %s",
-              configuration.error().message().c_str());
-        return -configuration.error().code();
-    }
-    const char* statsMapPath = STATS_MAP_PATH[configuration.value()];
-    BpfMap<StatsKey, StatsValue> statsMap(statsMapPath);
-    if (!statsMap.isValid()) {
-        int ret = -errno;
-        ALOGE("get stats map fd failed: %s, path: %s", strerror(errno), statsMapPath);
-        return ret;
-    }
-
-    // It is safe to read and clear the old map now since the
-    // networkStatsFactory should call netd to swap the map in advance already.
-    int ret = parseBpfNetworkStatsDetailInternal(lines, limitIfaces, limitTag, limitUid, statsMap,
-                                                 ifaceIndexNameMap);
-    if (ret) {
-        ALOGE("parse detail network stats failed: %s", strerror(errno));
-        return ret;
-    }
-
-    Result<void> res = statsMap.clear();
-    if (!res.ok()) {
-        ALOGE("Clean up current stats map failed: %s", strerror(res.error().code()));
-        return -res.error().code();
-    }
-
-    return 0;
+    return -ENOENT;
 }
 
 int parseBpfNetworkStatsDevInternal(std::vector<stats_line>* lines,
@@ -250,21 +204,7 @@ int parseBpfNetworkStatsDevInternal(std::vector<stats_line>* lines,
 }
 
 int parseBpfNetworkStatsDev(std::vector<stats_line>* lines) {
-    int ret = 0;
-    BpfMapRO<uint32_t, IfaceValue> ifaceIndexNameMap(IFACE_INDEX_NAME_MAP_PATH);
-    if (!ifaceIndexNameMap.isValid()) {
-        ret = -errno;
-        ALOGE("get ifaceIndexName map fd failed: %s", strerror(errno));
-        return ret;
-    }
-
-    BpfMapRO<uint32_t, StatsValue> ifaceStatsMap(IFACE_STATS_MAP_PATH);
-    if (!ifaceStatsMap.isValid()) {
-        ret = -errno;
-        ALOGE("get ifaceStats map fd failed: %s", strerror(errno));
-        return ret;
-    }
-    return parseBpfNetworkStatsDevInternal(lines, ifaceStatsMap, ifaceIndexNameMap);
+    return -ENOENT;
 }
 
 uint64_t combineUidTag(const uid_t uid, const uint32_t tag) {

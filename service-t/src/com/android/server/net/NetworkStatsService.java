@@ -2421,7 +2421,7 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
      * @param uid
      */
     private void deleteKernelTagData(int uid) {
-        try {
+/*        try {
             mCookieTagMap.forEach((key, value) -> {
                 // If SkDestroyListener deletes the socket tag while this code is running,
                 // forEach will either restart iteration from the beginning or return null,
@@ -2454,7 +2454,7 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
             mAppUidStatsMap.deleteEntry(new UidStatsMapKey(uid));
         } catch (ErrnoException e) {
             logErrorIfNotErrNoent(e, "Failed to delete tag data from app uid stats map");
-        }
+        } */
     }
 
     /**
